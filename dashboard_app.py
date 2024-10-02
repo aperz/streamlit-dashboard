@@ -108,7 +108,7 @@ elif add_sidebar == "Aggregate analysis":
     # Metrics
     metrics = []
     df_agg_metrics = yt_data[['Published', 'Views', 'Likes', 'Comments', 'Engagement',
-                              "Views Difference", "Comments Difference", "Likes Difference", "Engagement Difference",
+                              # "Views Difference", "Comments Difference", "Likes Difference", "Engagement Difference",
                               # 'Subscribers','Shares','RPM(USD)','Average % viewed',
                               #          'Avg_duration_sec', 'Engagement_ratio','Views / sub gained'
                               ]]
