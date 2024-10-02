@@ -1,0 +1,8 @@
+services:
+  streamlit:
+    container_name: "Streamlit-app"
+    build:
+      dockerfile: ./Dockerfile
+      context: ./
+    ports:
+      - '8501:8501'
