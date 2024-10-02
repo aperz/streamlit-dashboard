@@ -8,13 +8,8 @@ YouTube Channel info fetched using https://commentpicker.com/youtube-channel-id.
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-import plotly.express as px
 import streamlit as st
-from datetime import datetime
-import seaborn as sns
 
-from os import path
-from PIL import Image
 from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
 import matplotlib.pyplot as plt
 
