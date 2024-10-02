@@ -13,10 +13,10 @@ import streamlit as st
 from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
 import matplotlib.pyplot as plt
 
-#import nltk
-#nltk.download("vader_lexicon")
+# This should be in Dockerfile but Streamlit does not read Dockerfiles
+import nltk
+nltk.download("vader_lexicon")
 from nltk.sentiment import SentimentIntensityAnalyzer
-
 
 
 def style_negative(v, props=''):
@@ -26,6 +26,7 @@ def style_negative(v, props=''):
         return props if v < 0 else None
     except:
         pass
+
 
 def style_positive(v, props=''):
     """Style positive values in dataframe"""
@@ -72,7 +73,7 @@ def load_data():
 
 # create dataframes from the function
 yt_data, channel_info_data, comments = load_data()
-ave_sentiment_global = np.mean([v["Sentiment"].mean() for k,v in comments.items()])
+ave_sentiment_global = np.mean([v["Sentiment"].mean() for k, v in comments.items()])
 
 yt_data["Views Difference"] = yt_data["Views"] - yt_data["Views"].mean()
 yt_data["Comments Difference"] = yt_data["Comments"] - yt_data["Comments"].mean()
@@ -82,15 +83,14 @@ yt_data["Engagement Difference"] = yt_data["Engagement"] - yt_data["Engagement"]
 # app - dashboard
 add_sidebar = st.sidebar.selectbox('Select view', ('Profile', 'Aggregate analysis', "Comments sentiment analysis"))
 
-
 if add_sidebar == "Profile":
     st.markdown("# Dashboard for SerpaDesign YouTube channel")
 
     # Tag Wordcloud
     wordcloud_text = (", ").join(yt_data.Tags.apply(str))
-    wordcloud = WordCloud(background_color = 'white',
-                    width = 512,
-                    height = 384).generate(wordcloud_text)
+    wordcloud = WordCloud(background_color='white',
+                          width=512,
+                          height=384).generate(wordcloud_text)
     # Display the generated image:
     plt.imshow(wordcloud, interpolation='bilinear')
     plt.axis("off")
@@ -124,19 +124,20 @@ elif add_sidebar == "Aggregate analysis":
     for e, i in enumerate(metric_medians12mo.index.drop(["Published"])):
         with columns[e % 5]:
             delta = (metric_medians6mo[i] - metric_medians12mo[i]) / metric_medians12mo[i]
-            metrics.append(( i, metric_medians6mo[i], "{:.2%}".format(delta) ))
+            metrics.append((i, metric_medians6mo[i], "{:.2%}".format(delta)))
             metric_value = round(metric_medians6mo[i])
             if i == "Engagement":
-                #metric_value = "{:.2%}".format(metric_value)
                 metric_value = "N/A"
-            st.metric(label=i, value=metric_value, delta="{:.2%}".format(delta), help="Metrics over last 6 months and percentage change relative to last 12 months") # label, value, delta, tooltip_text
+            st.metric(label=i, value=metric_value, delta="{:.2%}".format(delta),
+                      help="Metrics over last 6 months and percentage change relative to last 12 months")  # label, value, delta, tooltip_text
 
     from plotly.subplots import make_subplots
-    fig_time_series = make_subplots(rows=4, cols=1, vertical_spacing = 0.05, shared_xaxes=True)
-    for e,v in enumerate(["Views", "Comments", "Likes", "Engagement"]):
+
+    fig_time_series = make_subplots(rows=4, cols=1, vertical_spacing=0.05, shared_xaxes=True)
+    for e, v in enumerate(["Views", "Comments", "Likes", "Engagement"]):
         fig_time_series.add_trace(
-                go.Scatter(x=yt_data.index, y= yt_data[v], mode="lines", name=v),
-            row=e+1, col=1)
+            go.Scatter(x=yt_data.index, y=yt_data[v], mode="lines", name=v),
+            row=e + 1, col=1)
 
     fig_time_series.update_traces(hovertemplate=None)
     fig_time_series.update_layout(hovermode="x unified")
@@ -144,11 +145,11 @@ elif add_sidebar == "Aggregate analysis":
     st.plotly_chart(fig_time_series)
 
     st.dataframe(
-        yt_data[["Date", 'Title', 'Views', 'Likes', 'Comments', 'Engagement', 'Length', "Views Difference", "Comments Difference", "Likes Difference", "Engagement Difference", "Description"]]\
-            .set_index("Title")\
-            #.sort_values("Date")\
-            .style.hide()
-            .applymap(style_negative, props='color:red;')\
+        yt_data[["Date", 'Title', 'Views', 'Likes', 'Comments', 'Engagement', 'Length', "Views Difference",
+                 "Comments Difference", "Likes Difference", "Engagement Difference", "Description"]] \
+            .set_index("Title") \
+            .style.hide() \
+            .applymap(style_negative, props='color:red;') \
             .applymap(style_positive, props='color:green;')
     )
     st.caption("Note: Aggregated data range: June 22nd 2013 - Sep 26th 2024")
@@ -157,13 +158,13 @@ elif add_sidebar == "Aggregate analysis":
 if add_sidebar == "Comments sentiment analysis":
     videos_ids = comments.keys()
     videos_titles = yt_data[yt_data["Video ID"].isin(videos_ids)]["Title"].values
-    selected_title = st.selectbox('Pick A Video', tuple(videos_titles)) #tuple(yt_data["Title"]))
+    selected_title = st.selectbox('Pick A Video', tuple(videos_titles))  #tuple(yt_data["Title"]))
     selected_id = yt_data[yt_data["Title"] == selected_title]["Video ID"].iloc[0]
     video_comment_data = comments[selected_id]
 
-    # st.metric(label="Ave Sentiment", value="{:.2}".format(video_comment_data["Sentiment"].mean()), delta=video_comment_data["Sentiment"].mean()-ave_sentiment_global, help="Difference between average sentiment for this video and average sentiment for all videos")
-    st.metric(label="Ave Sentiment", value="{:.2}".format(video_comment_data["Sentiment"].mean()), delta= "{:.2%}".format(video_comment_data["Sentiment"].mean()-ave_sentiment_global), help="Difference between average sentiment for this video and average sentiment for all videos")
-
+    st.metric(label="Ave Sentiment", value="{:.2}".format(video_comment_data["Sentiment"].mean()),
+              delta="{:.2%}".format(video_comment_data["Sentiment"].mean() - ave_sentiment_global),
+              help="Difference between average sentiment for this video and average sentiment for all videos")
 
     st.dataframe(video_comment_data, hide_index=True)
     st.caption("Note: Sentiment analysis uses very limited comment data.")
